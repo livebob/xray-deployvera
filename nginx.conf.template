@@ -1,0 +1,31 @@
+worker_processes 1;
+pid /tmp/nginx.pid;
+error_log /tmp/nginx-error.log;
+events { worker_connections 256; }
+http {
+  access_log /tmp/nginx-access.log;
+  client_body_temp_path /tmp/nginx-body;
+  proxy_temp_path /tmp/nginx-proxy;
+  fastcgi_temp_path /tmp/nginx-fastcgi;
+  uwsgi_temp_path /tmp/nginx-uwsgi;
+  scgi_temp_path /tmp/nginx-scgi;
+  server {
+    listen __PORT__ default_server;
+    server_name _;
+    location / {
+      access_log off;
+      default_type text/plain;
+      return 200 "ok";
+    }
+    location /vless {
+      proxy_pass http://127.0.0.1:10000;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_read_timeout 3600s;
+      proxy_send_timeout 3600s;
+    }
+  }
+}
